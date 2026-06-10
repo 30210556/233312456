@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>수학 기호 변환 및 AI 어시스턴트</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+      font-family: Arial, sans-serif;
+      color: #333;
+    }
+
+    .container {
+      width: min(900px, 92%);
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 28px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+      border-bottom: 2px solid #edf1f5;
+      padding-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #777;
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+
+    section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #fcfdfe;
+      border: 1px solid #edf1f5;
+      border-radius: 16px;
+    }
+
+    .auth-box {
+      max-width: 420px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      height: 46px;
+      padding: 0 14px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    textarea {
+      height: 100px;
+      padding: 12px;
+      resize: vertical;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: #42a5f5;
+      box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      padding: 0 16px;
+      height: 46px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.15s;
+      font-weight: bold;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      transform: none;
+    }
+
+    .primary-btn { background: #42a5f5; color: white; }
+    .secondary-btn { background: #7e57c2; color: white; }
+    .danger-btn { background: #ef5350; color: white; }
+    .dark-btn { background: #455a64; color: white; }
+    .green-btn { background: #66bb6a; color: white; }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+      padding: 14px;
+      border-radius: 16px;
+      background: #f7f9fb;
+    }
+
+    .user-info { font-size: 14px; color: #555; }
+    .status { min-height: 24px; margin-top: 8px; color: #666; font-size: 14px; }
+    
+    .shortcut-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    
+    .shortcut-btn {
+      height: 35px;
+      background: #e0e0e0;
+      color: #333;
+      font-size: 13px;
+      padding: 0 12px;
+      border-radius: 8px;
+    }
+
+    .result-box {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 10px;
+      min-height: 50px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      border: 1px dashed #ccc;
+    }
+
+    .list { display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto; }
+    .item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px; border-radius: 12px; background: #f7f9fb; border: 1px solid #edf1f5;
+    }
+    .item-text { flex: 1; margin-right: 10px; }
+    .item-title { font-weight: bold; margin: 0 0 4px 0; }
+    .item-content { margin: 0; color: #555; font-size: 14px; }
+    .item-date { font-size: 11px; color: #999; margin-top: 4px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>수학 변환기 & AI Assistant</h1>
+    <div class="subtitle">Math Core + Firebase Auth/RTDB + ChatGPT API + TTS 일체형 시스템</div>
+
+    <section id="authSection">
+      <div class="auth-box">
+        <h2>로그인 / 회원가입</h2>
+        <input id="emailInput" type="email" placeholder="이메일 주소" />
+        <input id="passwordInput" type="password" placeholder="비밀번호 (6자리 이상)" />
+        <div class="btn-row">
+          <button class="primary-btn" id="loginBtn">로그인</button>
+          <button class="secondary-btn" id="signupBtn">회원가입</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="mainSection" class="hidden">
+      <div class="top-bar">
+        <div class="user-info">로그인 계정: <strong id="userEmail"></strong></div>
+        <button class="dark-btn" style="width:auto; height:38px;" id="logoutBtn">로그아웃</button>
+      </div>
+
+      <h2>1. 수학 기호 변환기 (입력 시 자동 변환)</h2>
+      <p style="font-size:13px; color:#666; margin-top:-5px;">예시 입력: '루트2', '파이', '시그마' 등을 한글로 적거나 기호 버튼을 누르세요.</p>
+      
+      <div class="shortcut-buttons">
+        <button class="shortcut-btn" onclick="appendShortcut('루트')">√ 루트</button>
+        <button class="shortcut-btn" onclick="appendShortcut('파이')">π 파이</button>
+        <button class="shortcut-btn" onclick="appendShortcut('시그마')">∑ 시그마</button>
+        <button class="shortcut-btn" onclick="appendShortcut('인테그랄')">∫ 인테그랄</button>
+        <button class="shortcut-btn" onclick="appendShortcut('플러스마이너스')">± ±</button>
+      </div>
+
+      <input id="mathInput" type="text" placeholder="변환할 수학 표현을 입력하세요 (ex: 루트2 + 3파이)" />
+      
+      <div style="margin-top: 12px;">
+        <strong>변환 결과값:</strong>
+        <div id="mathResult" class="result-box"></div>
+      </div>
+      
+      <div class="btn-row">
+        <button class="secondary-btn" id="saveDbBtn">변환 결과 Firebase에 저장</button>
+      </div>
+
+      <hr style="border:0; border-top:1px solid #edf1f5; margin:30px 0;">
+
+      <h2>2. AI 어시스턴트 (ChatGPT 질의 및 TTS 음성 듣기)</h2>
+      <textarea id="aiQuestion" placeholder="AI에게 물어볼 질문을 입력하세요... (변환 결과를 복사해 넣어도 좋습니다)"></textarea>
+      
+      <div class="btn-row">
+        <button class="primary-btn" id="askAiBtn">AI 질문하기</button>
+        <button class="green-btn" id="ttsBtn" disabled>답변 음성으로 듣기 (TTS)</button>
+      </div>
+
+      <div style="margin-top: 12px;">
+        <strong>AI 답변 내용:</strong>
+        <div id="aiAnswer" class="result-box" style="min-height: 100px;"></div>
+      </div>
+      
+      <div id="status" class="status"></div>
+
+      <hr style="border:0; border-top:1px solid #edf1f5; margin:30px 0;">
+
+      <h2>3. 나의 저장 목록 (Firebase Realtime DB)</h2>
+      <button class="green-btn" style="margin-bottom: 12px; height:38px; width:auto;" id="refreshBtn">새로고침</button>
+      <div id="dataList" class="list"></div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getDatabase, ref, push, set, remove, onValue, off } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+    // [설정 1] 본인의 Firebase 설정값 (기존 소스 유지)
+    const firebaseConfig = {
+      apiKey: 'AIzaSyDO-v52Ehwphh5gW0WBzu9_DliMhOzy4Yo',
+      authDomain: 'kang-f4e85.firebaseapp.com',
+      databaseURL: 'https://kang-f4e85-default-rtdb.firebaseio.com',
+      projectId: 'kang-f4e85',
+      storageBucket: 'kang-f4e85.firebasestorage.app',
+      messagingSenderId: '107057126084',
+      appId: '1:107057126084:web:30f7bcb3f25dd2aa4a0791',
+      measurementId: 'G-DJ52YTYQZM'
+    };
+
+    // [설정 2] 배포한 Google Apps Script 웹 앱 URL 입력하세요.
+    const GAS_WEB_APP_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+    // Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+
+    // DOM 요소 객체 생성
+    const authSection = document.getElementById('authSection');
+    const mainSection = document.getElementById('mainSection');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userEmail = document.getElementById('userEmail');
+
+    const mathInput = document.getElementById('mathInput');
+    const mathResult = document.getElementById('mathResult');
+    const saveDbBtn = document.getElementById('saveDbBtn');
+
+    const aiQuestion = document.getElementById('aiQuestion');
+    const askAiBtn = document.getElementById('askAiBtn');
+    const ttsBtn = document.getElementById('ttsBtn');
+    const aiAnswer = document.getElementById('aiAnswer');
+    const statusBox = document.getElementById('status');
+    const dataList = document.getElementById('dataList');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    let currentUser = null;
+    let currentItemsRef = null;
+    let lastAiAnswerText = ""; // TTS용 보관 텍스트
+
+    function setStatus(msg) { statusBox.textContent = msg; }
+
+    // --- 수학 특수문자 변환 사전 딕셔너리 및 로직 ---
+    const mathDictionary = {
+      '루트': '√',
+      '파이': 'π',
+      '시그마': '∑',
+      '인테그랄': '∫',
+      '플러스마이너스': '±',
+      '알파': 'α',
+      '베타': 'β',
+      '감마': 'γ',
+      '델타': 'δ',
+      '세타': 'θ'
+    };
+
+    function convertMathText() {
+      let text = mathInput.value;
+      for (const [key, value] of Object.entries(mathDictionary)) {
+        text = text.split(key).join(value);
+      }
+      mathResult.textContent = text;
+    }
+
+    // 인풋 변경 감지 자동 매핑 변환
+    mathInput.addEventListener('input', convertMathText);
+
+    // 숏컷 버튼 클릭 시 인풋에 단어 배치 함수 정의
+    window.appendShortcut = function(word) {
+      mathInput.value += word;
+      convertMathText();
+      mathInput.focus();
+    };
+
+    // --- Firebase Auth (인증 컨트롤) ---
+    function getAccountInfo() {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      if (!email || !password) { alert('이메일과 비밀번호를 입력해주세요.'); return null; }
+      if (password.length < 6) { alert('비밀번호는 6자리 이상이어야 합니다.'); return null; }
+      return { email, password };
+    }
+
+    signupBtn.addEventListener('click', async () => {
+      const acc = getAccountInfo(); if (!acc) return;
+      try {
+        await createUserWithEmailAndPassword(auth, acc.email, acc.password);
+        alert('회원가입 성공!');
+      } catch (err) { alert(getKoreanErrorMessage(err.code)); }
+    });
+
+    loginBtn.addEventListener('click', async () => {
+      const acc = getAccountInfo(); if (!acc) return;
+      try { await signInWithEmailAndPassword(auth, acc.email, acc.password); }
+      catch (err) { alert(getKoreanErrorMessage(err.code)); }
+    });
+
+    logoutBtn.addEventListener('click', async () => { try { await signOut(auth); } catch(e) { alert('오류발생');} });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        authSection.classList.add('hidden');
+        mainSection.classList.remove('hidden');
+        userEmail.textContent = user.email;
+        emailInput.value = ''; passwordInput.value = '';
+        startRealtimeListener(user.uid);
+      } else {
+        currentUser = null;
+        authSection.classList.remove('hidden');
+        mainSection.classList.add('hidden');
+        stopRealtimeListener();
+      }
+    });
+
+    // --- Firebase Realtime DB CRUD ---
+    function startRealtimeListener(uid) {
+      stopRealtimeListener();
+      setStatus('데이터 연동 중...');
+      currentItemsRef = ref(database, `users/${uid}/items`);
+      onValue(currentItemsRef, (snapshot) => {
+        renderData(snapshot.val());
+        setStatus('실시간 동기화 완료.');
+      }, (err) => { setStatus('DB 호출 실패 (규칙 확인 필요)'); });
+    }
+
+    function stopRealtimeListener() { if (currentItemsRef) { off(currentItemsRef); currentItemsRef = null; } }
+
+    refreshBtn.addEventListener('click', () => { if(currentUser) startRealtimeListener(currentUser.uid); });
+
+    saveDbBtn.addEventListener('click', async () => {
+      if (!currentUser) return;
+      const finalVal = mathResult.textContent.trim();
+      if (!finalVal) { alert('변환된 텍스트 내용이 비어있습니다.'); return; }
+
+      try {
+        setStatus('데이터 저장 중...');
+        const itemsRef = ref(database, `users/${currentUser.uid}/items`);
+        const newItemRef = push(itemsRef);
+        await set(newItemRef, {
+          title: "수학 기호 변환값",
+          content: finalVal,
+          createdAt: new Date().toLocaleString('ko-KR')
+        });
+        setStatus('성공적으로 Firebase DB에 저장되었습니다!');
+      } catch (error) {
+        console.error(error);
+        alert('DB 저장에 실패했습니다.');
+      }
+    });
+
+    window.deleteData = async function(id) {
+      if (!currentUser || !confirm('삭제하시겠습니까?')) return;
+      try { await remove(ref(database, `users/${currentUser.uid}/items/${id}`)); } 
+      catch (e) { alert('삭제 실패'); }
+    };
+
+    function renderData(data) {
+      dataList.innerHTML = '';
+      if (!data) { dataList.innerHTML = '<div style="text-align:center;color:#888;padding:15px;">저장 내역 없음</div>'; return; }
+      Object.entries(data).reverse().forEach(([id, item]) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="item-text">
+            <p class="item-content" style="font-size:16px; font-weight:bold; color:#222;">${escapeHTML(item.content || '')}</p>
+            <div class="item-date">기록시간: ${item.createdAt || '-'}</div>
+          </div>
+          <button class="danger-btn" style="height:32px; padding:0 10px; font-size:12px; flex:none;" onclick="deleteData('${id}')">삭제</button>
+        `;
+        dataList.appendChild(div);
+      });
+    }
+
+    // --- Google Apps Script / OpenAI 연동 기능 ---
+    askAiBtn.addEventListener('click', async () => {
+      const q = aiQuestion.value.trim();
+      if(!q) { alert('질문을 입력하세요.'); return; }
+      if(GAS_WEB_APP_URL.includes('YOUR_GOOGLE')) { alert('Google Apps Script 웹 앱 URL 주소를 코드가 입력해 주세요.'); return; }
+
+      try {
+        askAiBtn.disabled = true;
+        ttsBtn.disabled = true;
+        aiAnswer.textContent = "AI 답변 생성 중입니다. 잠시만 기다려주세요...";
+        setStatus('Apps Script API와 통신 중...');
+
+        const res = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ type: "chat", question: q })
+        });
+        const data = await res.json();
+
+        if (data.answer) {
+          lastAiAnswerText = data.answer;
+          aiAnswer.textContent = data.answer;
+          ttsBtn.disabled = false;
+          setStatus('답변 수신 완료.');
+        } else if (data.error) {
+          aiAnswer.textContent = `오류 발생:\n${data.error}`;
+          setStatus('API 에러 응답 수신');
+        }
+      } catch (err) {
+        console.error(err);
+        aiAnswer.textContent = "통신 실패 오류가 발생했습니다. CORS 세팅 혹은 GAS URL을 검토하세요.";
+        setStatus('서버 통신 실패');
+      } finally {
+        askAiBtn.disabled = false;
+      }
+    });
+
+    ttsBtn.addEventListener('click', async () => {
+      if(!lastAiAnswerText) return;
+      try {
+        ttsBtn.disabled = true;
+        setStatus('TTS 음성 생성 요청 중...');
+
+        const res = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ type: "tts", text: lastAiAnswerText.substring(0, 300) }) // 안정성을 위해 앞 300자 컷
+        });
+        const data = await res.json();
+
+        if (data.audioBase64) {
+          setStatus('음성 재생 중...');
+          const audioBytes = Uint8Array.from(atob(data.audioBase64), c => c.charCodeAt(0));
+          const blob = new Blob([audioBytes], { type: 'audio/mp3' });
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          audio.play();
+          audio.onended = () => { setStatus('음성 재생 완료.'); ttsBtn.disabled = false; };
+        } else {
+          alert('음성 데이터를 가져오지 못했습니다.');
+          ttsBtn.disabled = false;
+        }
+      } catch (err) {
+        console.error(err);
+        alert('TTS 로딩 중 문제가 발생했습니다.');
+        ttsBtn.disabled = false;
+      }
+    });
+
+    // 보조 특수 유틸 함수
+    function escapeHTML(t) { return String(t).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+    function getKoreanErrorMessage(c) {
+      if (c === 'auth/email-already-in-use') return '이미 사용 중인 이메일입니다.';
+      if (c === 'auth/weak-password') return '패스워드가 너무 유약합니다.';
+      if (c === 'auth/invalid-credential') return '계정 로그인 정보가 잘못되었습니다.';
+      return `오류 코드: ${c}`;
+    }
+  </script>
+</body>
+</html>
