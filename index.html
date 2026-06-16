@@ -3,46 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI 비서 & TTS 음성 변환기 (Firebase 연동)</title>
+  <title>수학 기호 입력 및 AI 음성 변환기</title>
+  
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      startup: {
+        pageReady: () => {
+          return MathJax.startup.defaultPageReady().then(() => {
+            console.log('MathJax 준비 완료');
+          });
+        }
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   <style>
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
-      background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+      background: linear-gradient(135deg, #e0f2f1, #fff9c4);
       font-family: Arial, sans-serif;
       color: #333;
     }
 
     .container {
-      width: min(900px, 92%);
+      width: min(950px, 94%);
       margin: 40px auto;
       background: #ffffff;
       border-radius: 24px;
       padding: 28px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
     }
 
     h1 {
       margin: 0 0 8px;
       text-align: center;
       font-size: 28px;
+      color: #004d40;
     }
 
     .subtitle {
       text-align: center;
-      color: #777;
+      color: #00796b;
       margin-bottom: 24px;
-      font-size: 14px;
+      font-size: 15px;
+      font-weight: bold;
     }
 
     .info {
       padding: 14px;
       margin-bottom: 20px;
       border-radius: 14px;
-      background: #e8f5e9;
-      color: #2e7d32;
+      background: #e0f2f1;
+      color: #004d40;
       font-size: 14px;
       line-height: 1.6;
     }
@@ -57,7 +77,7 @@
     select, input {
       height: 44px;
       padding: 0 12px;
-      border: 1px solid #ddd;
+      border: 1px solid #ccc;
       border-radius: 12px;
       font-size: 14px;
       outline: none;
@@ -65,26 +85,27 @@
 
     textarea {
       width: 100%;
-      min-height: 140px;
+      min-height: 120px;
       resize: vertical;
       padding: 16px;
-      border: 1px solid #ddd;
+      border: 1px solid #ccc;
       border-radius: 16px;
       font-size: 16px;
       line-height: 1.5;
       outline: none;
-      font-family: Arial, sans-serif;
+      font-family: 'Courier New', Courier, monospace;
     }
 
     textarea:focus, select:focus, input:focus {
-      border-color: #42a5f5;
-      box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+      border-color: #009688;
+      box-shadow: 0 0 0 3px rgba(0, 150, 136, 0.15);
     }
 
     .label {
       font-weight: bold;
       margin-top: 14px;
       margin-bottom: 6px;
+      color: #004d40;
     }
 
     .button-row {
@@ -115,38 +136,31 @@
       opacity: 0.9;
     }
 
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-      transform: none;
-    }
+    button:disabled { cursor: not-allowed; opacity: 0.6; transform: none; }
 
-    .ai-btn {
-      background: #26a69a;
-      color: white;
-    }
-
-    .make-btn {
-      background: #42a5f5;
-      color: white;
-    }
-
-    .clear-btn {
-      background: #b0bec5;
-      color: white;
-    }
-
-    .download-link {
-      background: #7e57c2;
-      color: white;
-    }
+    .ai-btn { background: #009688; color: white; }
+    .make-btn { background: #4db6ac; color: white; }
+    .clear-btn { background: #b0bec5; color: white; }
+    .download-link { background: #7e57c2; color: white; }
 
     .status {
       min-height: 24px;
       margin-top: 14px;
-      color: #555;
+      color: #00796b;
       font-size: 14px;
       font-weight: bold;
+    }
+
+    /* 수식 렌더링 박스 */
+    .math-preview-box {
+      margin-top: 15px;
+      padding: 16px;
+      border-radius: 14px;
+      background: #f9f9f9;
+      border: 1px dashed #009688;
+      min-height: 60px;
+      font-size: 18px;
+      overflow-x: auto;
     }
 
     .chat-result-box {
@@ -157,12 +171,6 @@
       border: 1px solid #dcedc8;
     }
 
-    .chat-answer {
-      font-size: 15px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
     .result-box {
       margin-top: 20px;
       padding: 18px;
@@ -171,32 +179,27 @@
       border: 1px solid #edf1f5;
     }
 
-    audio {
-      width: 100%;
-      margin-top: 10px;
-    }
-
+    audio { width: 100%; margin-top: 10px; }
     .hidden { display: none; }
 
-    .help {
-      margin-top: 16px;
-      font-size: 13px;
-      color: #777;
-      line-height: 1.6;
+    /* 📜 Firebase 히스토리 */
+    .history-section {
+      margin-top: 30px;
+      border-top: 2px dashed #e0e0e0;
+      padding-top: 20px;
     }
-
-    @media (max-width: 700px) {
-      .option-box { grid-template-columns: 1fr; }
-      .button-row { justify-content: stretch; }
-      button, .download-link { width: 100%; }
-    }
+    .history-title { font-size: 17px; font-weight: bold; margin-bottom: 12px; color: #37474f; }
+    .history-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .history-item { background: #fcfcfc; border: 1px solid #eaeaea; padding: 12px; border-radius: 12px; font-size: 13px; }
+    .badge { display: inline-block; padding: 3px 7px; border-radius: 6px; font-size: 11px; font-weight: bold; color: white; margin-right: 6px; }
+    .badge.chat { background: #009688; }
+    .badge.tts { background: #4db6ac; }
   </style>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getDatabase, ref, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-    // 사용자의 Firebase 설정 정보 적용
     const firebaseConfig = {
       apiKey: "AIzaSyBwh9H9tIKEDPE0v4qyq3J-ztgpWje5xDQ",
       authDomain: "project-4779783936135707874.firebaseapp.com",
@@ -208,85 +211,100 @@
       measurementId: "G-2DPM7PVJ7V"
     };
 
-    // Firebase 초기화
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const historyRef = ref(db, 'math_history');
 
-    // 전역 스크립트에서 호출할 수 있도록 함수 등록
     window.saveLogToFirebase = function(type, input, output) {
-      try {
-        const historyRef = ref(db, 'history');
-        push(historyRef, {
-          type: type,          // 'chat_and_tts' 또는 'pure_tts'
-          input: input,        // 유저가 입력한 값
-          output: output,      // 생성된 답변 결과 (텍스트)
-          timestamp: serverTimestamp() // 서버 시간 저장
-        });
-        console.log("Firebase에 로그가 안전하게 기록되었습니다.");
-      } catch (e) {
-        console.error("Firebase 로그 저장 실패:", e);
+      push(historyRef, { type: type, input: input, output: output, timestamp: serverTimestamp() });
+    };
+
+    // 실시간 DB 데이터 화면 표기 + 수식 재렌더링
+    onValue(historyRef, (snapshot) => {
+      const historyListEl = document.getElementById('historyList');
+      historyListEl.innerHTML = '';
+      const data = snapshot.val();
+      if (!data) {
+        historyListEl.innerHTML = '<div style="color:#999; text-align:center; padding: 10px;">기록이 없습니다.</div>';
+        return;
       }
-    }
+      const keys = Object.keys(data).reverse();
+      keys.forEach(key => {
+        const item = data[key];
+        const itemEl = document.createElement('div');
+        itemEl.className = 'history-item';
+        const isChat = item.type === 'math_chat';
+        const badgeHtml = isChat ? '<span class="badge chat">수학 질의</span>' : '<span class="badge tts">수식 변환</span>';
+        
+        itemEl.innerHTML = `
+          <div>${badgeHtml} <b>입력:</b> ${item.input}</div>
+          ${isChat ? `<div style="margin-top: 5px; color: #444;">└ <b>AI 답변:</b> ${item.output}</div>` : ''}
+        `;
+        historyListEl.appendChild(itemEl);
+      });
+      // 히스토리 내의 수학 기호들 실시간 업데이트 렌더링
+      if (window.MathJax && MathJax.typesetPromise) { MathJax.typesetPromise(); }
+    });
   </script>
 </head>
 <body>
   <div class="container">
-    <h1>AI 비서 & TTS 음성 변환기</h1>
-    <div class="subtitle">질문을 던지거나 텍스트를 바로 AI 음성(mp3)으로 변환하고 Firebase에 기록합니다</div>
+    <h1>수학 기호 입력 및 AI 변환기</h1>
+    <div class="subtitle">LaTeX 문법을 활용한 수학 기호 시각화 및 오디오 변환 시스템</div>
 
     <div class="info">
-      현재 구조: GitHub Pages 화면 → Google Apps Script 서버 → OpenAI API → 데이터 수신<br />
-      <b>[추가 기능]</b>: 생성된 모든 질문과 음성 변환 기록은 실시간으로 <b>Firebase Realtime Database</b>에 누적 저장됩니다.
+      💡 <b>입력 가이드 (LaTeX 문법 지원):</b><br />
+      • 문장 안에 수식을 넣으려면 <code>$수식$</code> 형태로 감싸세요. (예: <code>근의 공식은 $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$ 입니다.</code>)<br />
+      • 실시간으로 아래 수식 미리보기 창과 하단 데이터베이스 목록에 기호가 바르게 변환되어 출력됩니다.
     </div>
 
-    <div class="label">음성 옵션 설정</div>
+    <div class="label">음성 엔진 설정</div>
     <div class="option-box">
       <select id="modelSelect">
-        <option value="tts-1">tts-1 빠른 생성</option>
-        <option value="tts-1-hd">tts-1-hd 고품질</option>
+        <option value="tts-1">tts-1 (빠름)</option>
+        <option value="tts-1-hd">tts-1-hd (고품질)</option>
       </select>
-
       <select id="voiceSelect">
         <option value="alloy">alloy (공용)</option>
-        <option value="echo">echo (부드러운 남성)</option>
-        <option value="fable">fable (드라마틱)</option>
-        <option value="onyx">onyx (묵직한 남성)</option>
-        <option value="nova">nova (생기있는 여성)</option>
-        <option value="shimmer">shimmer (지적인 여성)</option>
+        <option value="echo">echo (남성)</option>
+        <option value="nova">nova (여성)</option>
+        <option value="shimmer">shimmer (지적 음성)</option>
       </select>
-
-      <input id="speedInput" type="number" min="0.25" max="4.0" step="0.05" value="1.0" placeholder="속도 (1.0)" />
+      <input id="speedInput" type="number" min="0.25" max="4.0" step="0.05" value="1.0" />
     </div>
 
     <div>
-      <div class="label">질문 또는 변환할 텍스트 입력</div>
-      <textarea id="textInput" placeholder="1. 질문을 입력하고 'AI 답변 + 음성 듣기'를 누르거나&#10;2. 문장을 입력하고 '텍스트만 음성 변환'을 눌러보세요."></textarea>
+      <div class="label">수학 수식 또는 질문 입력</div>
+      <textarea id="textInput" placeholder="예: 피타고라스 정리는 $a^2 + b^2 = c^2$ 입니다. 혹은 수식 관련 질문을 입력하세요."></textarea>
     </div>
+
+    <div class="label">👀 실시간 수식 변환 미리보기</div>
+    <div id="mathPreview" class="math-preview-box">수식을 입력하면 여기에 실시간으로 기호가 렌더링됩니다.</div>
 
     <div class="button-row">
       <button class="clear-btn" id="clearBtn">초기화</button>
-      <button class="make-btn" id="makeBtn">텍스트만 음성 변환</button>
-      <button class="ai-btn" id="aiBtn">AI 답변 + 음성 듣기</button>
+      <button class="make-btn" id="makeBtn">수식 기호 음성 변환</button>
+      <button class="ai-btn" id="aiBtn">AI 수학 질문 + 음성 처리</button>
     </div>
 
     <div id="status" class="status"></div>
 
     <div id="chatBox" class="chat-result-box hidden">
-      <div class="label" style="color: #33691e; margin-top:0;">🤖 AI 답변 결과</div>
+      <div class="label" style="color: #004d40; margin-top:0;">🤖 AI 수학 분석 답변</div>
       <div id="chatAnswer" class="chat-answer"></div>
     </div>
 
     <div id="resultBox" class="result-box hidden">
-      <div class="label" style="margin-top:0;">🔊 생성된 AI 음성</div>
+      <div class="label" style="margin-top:0;">🔊 수식 가이드 음성 듣기</div>
       <audio id="audioPlayer" controls></audio>
       <div class="button-row">
-        <a id="downloadLink" class="download-link" href="#" download="tts-audio.mp3">mp3 다운로드</a>
+        <a id="downloadLink" class="download-link" href="#" download="math-audio.mp3">mp3 다운로드</a>
       </div>
     </div>
 
-    <div class="help">
-      • 모든 변환 이력은 설정하신 Firebase Realtime Database의 <b>'history'</b> 노드에 실시간으로 기록됩니다.<br />
-      • 규칙(Rules) 탭에서 <code>".read": true, ".write": true</code> 상태여야 정상적으로 기록이 전송됩니다.
+    <div class="history-section">
+      <div class="history-title">📊 수식 저장소 (Firebase Realtime DB 실시간 연동)</div>
+      <div id="historyList" class="history-list"></div>
     </div>
   </div>
 
@@ -294,6 +312,7 @@
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDNMIktE288seW2Mr5YgksYFeAP3SNl8YyQZFa1DuvD0N_8pjRLDmxkZBYyQ4WGPmt/exec';
 
     const textInput = document.getElementById('textInput');
+    const mathPreview = document.getElementById('mathPreview');
     const modelSelect = document.getElementById('modelSelect');
     const voiceSelect = document.getElementById('voiceSelect');
     const speedInput = document.getElementById('speedInput');
@@ -307,15 +326,22 @@
     const audioPlayer = document.getElementById('audioPlayer');
     const downloadLink = document.getElementById('downloadLink');
 
+    // ⌨️ 키보드 입력 시 실시간으로 MathJax 기호 변환 작동
+    let debounceTimer;
+    textInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const val = textInput.value.trim();
+        mathPreview.textContent = val ? val : "수식을 입력하면 여기에 실시간으로 기호가 렌더링됩니다.";
+        if (window.MathJax && MathJax.typesetPromise) {
+          MathJax.typesetPromise([mathPreview]);
+        }
+      }, 300); // 0.3초 대기 후 변환 (성능 최적화)
+    });
+
     makeBtn.addEventListener('click', () => processPipeline(false));
     aiBtn.addEventListener('click', () => processPipeline(true));
     clearBtn.addEventListener('click', clearPage);
-
-    textInput.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' && event.ctrlKey) {
-        processPipeline(false);
-      }
-    });
 
     async function processPipeline(isChat) {
       const inputText = textInput.value.trim();
@@ -323,47 +349,44 @@
       const voice = voiceSelect.value;
       const speed = Number(speedInput.value || 1.0);
 
-      if (!inputText) {
-        alert('텍스트를 입력해주세요.');
-        return;
-      }
+      if (!inputText) { alert('내용을 입력해주세요.'); return; }
 
       try {
         setLoading(true);
         chatBox.classList.add('hidden');
         resultBox.classList.add('hidden');
+        statusBox.textContent = isChat ? '🤖 AI가 수식을 분석하여 답변을 구성하고 있습니다...' : '🔊 수식을 분석하여 음성 파일 변환 중...';
         
         let ttsTargetText = inputText;
 
-        // 1단계: Chat 기능 작동 시
         if (isChat) {
-          statusBox.textContent = '🤖 AI가 답변을 생각하는 중입니다...';
+          // AI 호출 프로프트를 수학 전용 어시스턴트 느낌으로 연동 유도
           const chatResponse = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ type: 'chat', question: inputText })
+            body: JSON.stringify({ type: 'chat', question: inputText + " (수학 기호는 $ 기호로 감싸서 LaTeX 형식으로 친절하게 답변해주세요.)" })
           });
-
           const chatData = await chatResponse.json();
-          if (chatData.error) throw new Error('Chat 오류: ' + chatData.error);
+          if (chatData.error) throw new Error(chatData.error);
           
           chatAnswer.textContent = chatData.answer;
           chatBox.classList.remove('hidden');
           
+          // AI 답변 결과 수식으로 보기 좋게 전환
+          if (window.MathJax && MathJax.typesetPromise) { MathJax.typesetPromise([chatAnswer]); }
+          
           ttsTargetText = chatData.answer;
 
-          // [Firebase 기록] Chat 결과 저장
           if(typeof window.saveLogToFirebase === 'function') {
-            window.saveLogToFirebase('chat_and_tts', inputText, chatData.answer);
+            window.saveLogToFirebase('math_chat', inputText, chatData.answer);
           }
         } else {
-          // [Firebase 기록] 단순 TTS 결과 저장
           if(typeof window.saveLogToFirebase === 'function') {
-            window.saveLogToFirebase('pure_tts', inputText, '(순수 텍스트 음성 변환)');
+            window.saveLogToFirebase('math_tts', inputText, '(수식 음성 변환)');
           }
         }
 
-        // 2단계: TTS 변환 작업
-        statusBox.textContent = '🔊 답변을 AI 음성으로 변환하고 있습니다...';
+        // 음성 API 요청 (OpenAI는 수식 부호를 말로 풀어서 자연스럽게 읽어줍니다)
+        statusBox.textContent = '🔊 생성된 수식 내용을 오디오 파일로 굽는 중...';
         const ttsResponse = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({
@@ -376,20 +399,19 @@
         });
 
         const ttsData = await ttsResponse.json();
-        if (ttsData.error) throw new Error('TTS 오류: ' + ttsData.error);
+        if (ttsData.error) throw new Error(ttsData.error);
 
         const audioUrl = base64ToAudioUrl(ttsData.audioBase64, 'audio/mpeg');
         audioPlayer.src = audioUrl;
         downloadLink.href = audioUrl;
-        downloadLink.download = makeFileName();
         
         resultBox.classList.remove('hidden');
-        statusBox.textContent = '✅ 완료되었습니다!';
+        statusBox.textContent = '✅ 수식 및 음성 변환 완료!';
 
       } catch (error) {
         console.error(error);
-        statusBox.textContent = '❌ 요청 실패';
-        alert('오류가 발생했습니다.\n\n' + error.message);
+        statusBox.textContent = '❌ 에러 발생';
+        alert('오류 발생:\n' + error.message);
       } finally {
         setLoading(false);
       }
@@ -407,11 +429,6 @@
       return URL.createObjectURL(new Blob(byteArrays, { type: mimeType }));
     }
 
-    function makeFileName() {
-      const now = new Date();
-      return `ai-voice-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.mp3`;
-    }
-
     function setLoading(isLoading) {
       makeBtn.disabled = isLoading;
       aiBtn.disabled = isLoading;
@@ -419,6 +436,7 @@
 
     function clearPage() {
       textInput.value = '';
+      mathPreview.textContent = "수식을 입력하면 여기에 실시간으로 기호가 렌더링됩니다.";
       statusBox.textContent = '';
       chatAnswer.textContent = '';
       audioPlayer.removeAttribute('src');
