@@ -3,124 +3,200 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>수학 기호 변환 및 AI 어시스턴트</title>
+  <title>AI 비서 & TTS 음성 변환기 (Firebase 연동)</title>
   <style>
     * { box-sizing: border-box; }
+
     body {
-      margin: 0; min-height: 100vh;
+      margin: 0;
+      min-height: 100vh;
       background: linear-gradient(135deg, #e3f2fd, #fce4ec);
-      font-family: Arial, sans-serif; color: #333;
+      font-family: Arial, sans-serif;
+      color: #333;
     }
+
     .container {
-      width: min(900px, 92%); margin: 40px auto;
-      background: #ffffff; border-radius: 24px; padding: 28px;
+      width: min(900px, 92%);
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 28px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
     }
-    h1 { margin: 0 0 8px; text-align: center; font-size: 28px; }
-    h2 { margin-top: 0; font-size: 20px; border-bottom: 2px solid #edf1f5; padding-bottom: 8px; color: #1a237e; }
-    .subtitle { text-align: center; color: #777; margin-bottom: 28px; font-size: 14px; }
-    section { margin-bottom: 30px; padding: 20px; background: #fcfdfe; border: 1px solid #edf1f5; border-radius: 16px; }
-    .auth-box { max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-    input, textarea, select { width: 100%; height: 46px; padding: 0 14px; border: 1px solid #ddd; border-radius: 12px; font-size: 15px; outline: none; }
-    textarea { height: 100px; padding: 12px; resize: vertical; }
-    input:focus, textarea:focus, select:focus { border-color: #42a5f5; box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15); }
-    .btn-row { display: flex; gap: 10px; margin-top: 10px; }
-    button { flex: 1; border: none; border-radius: 12px; padding: 0 16px; height: 46px; font-size: 15px; cursor: pointer; transition: 0.15s; font-weight: bold; }
-    button:hover { transform: translateY(-2px); opacity: 0.9; }
-    button:disabled { cursor: not-allowed; opacity: 0.6; transform: none; }
-    .primary-btn { background: #42a5f5; color: white; }
-    .secondary-btn { background: #7e57c2; color: white; }
-    .danger-btn { background: #ef5350; color: white; }
-    .dark-btn { background: #455a64; color: white; }
-    .green-btn { background: #66bb6a; color: white; }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 22px; padding: 14px; border-radius: 16px; background: #f7f9fb; }
-    .user-info { font-size: 14px; color: #555; }
-    .status { min-height: 24px; margin-top: 8px; color: #d32f2f; font-size: 14px; font-weight: bold; }
-    .shortcut-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-    .shortcut-btn { height: 35px; background: #e0e0e0; color: #333; font-size: 13px; padding: 0 12px; border-radius: 8px; width: auto; flex: none; }
-    .result-box { background: #f5f5f5; padding: 15px; border-radius: 12px; margin-top: 10px; min-height: 50px; white-space: pre-wrap; word-break: break-all; border: 1px dashed #ccc; font-size: 16px; }
-    .list { display: flex; flex-direction: column; gap: 12px; max-height: 300px; overflow-y: auto; }
-    .item { display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 12px; background: #f7f9fb; border: 1px solid #edf1f5; }
-    .item-text { flex: 1; margin-right: 10px; }
-    .item-content { margin: 0; color: #555; font-size: 15px; font-weight: bold; }
-    .item-date { font-size: 11px; color: #999; margin-top: 4px; }
-    .hidden { display: none !important; }
+
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #777;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    .info {
+      padding: 14px;
+      margin-bottom: 20px;
+      border-radius: 14px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .option-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    select, input {
+      height: 44px;
+      padding: 0 12px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      resize: vertical;
+      padding: 16px;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      font-size: 16px;
+      line-height: 1.5;
+      outline: none;
+      font-family: Arial, sans-serif;
+    }
+
+    textarea:focus, select:focus, input:focus {
+      border-color: #42a5f5;
+      box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+    }
+
+    .label {
+      font-weight: bold;
+      margin-top: 14px;
+      margin-bottom: 6px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    button, .download-link {
+      border: none;
+      border-radius: 12px;
+      padding: 0 18px;
+      height: 46px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.15s;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    button:hover, .download-link:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      transform: none;
+    }
+
+    .ai-btn {
+      background: #26a69a;
+      color: white;
+    }
+
+    .make-btn {
+      background: #42a5f5;
+      color: white;
+    }
+
+    .clear-btn {
+      background: #b0bec5;
+      color: white;
+    }
+
+    .download-link {
+      background: #7e57c2;
+      color: white;
+    }
+
+    .status {
+      min-height: 24px;
+      margin-top: 14px;
+      color: #555;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .chat-result-box {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #f1f8e9;
+      border: 1px solid #dcedc8;
+    }
+
+    .chat-answer {
+      font-size: 15px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .result-box {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #f7f9fb;
+      border: 1px solid #edf1f5;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .hidden { display: none; }
+
+    .help {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #777;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 700px) {
+      .option-box { grid-template-columns: 1fr; }
+      .button-row { justify-content: stretch; }
+      button, .download-link { width: 100%; }
+    }
   </style>
-</head>
-<body>
-  <div class="container">
-    <h1>수학 변환기 & AI Assistant</h1>
-    <div class="subtitle">GitHub Pages + Firebase Auth/RTDB + ChatGPT + TTS 통합 시스템</div>
-
-    <section id="authSection">
-      <div class="auth-box">
-        <h2>로그인 / 회원가입</h2>
-        <input id="emailInput" type="email" placeholder="이메일 주소 (공백 주의)" />
-        <input id="passwordInput" type="password" placeholder="비밀번호 (6자리 이상)" />
-        <div class="btn-row">
-          <button class="primary-btn" id="loginBtn">로그인</button>
-          <button class="secondary-btn" id="signupBtn">회원가입</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="mainSection" class="hidden">
-      <div class="top-bar">
-        <div class="user-info">로그인 계정: <strong id="userEmail"></strong></div>
-        <button class="dark-btn" style="width:auto; height:38px; flex:none;" id="logoutBtn">로그아웃</button>
-      </div>
-
-      <h2>1. AI에게 질문하기 (질문 후 답변, 변환, 음성이 자동 실행됩니다)</h2>
-      <textarea id="aiQuestion" placeholder="예시: 적분 기호는 어떻게 표현하니? 또는 루트2 더하기 파이는 어떻게 써?"></textarea>
-      
-      <div class="btn-row">
-        <button class="primary-btn" id="askAiBtn">AI 질문하기</button>
-        <button class="green-btn" id="ttsBtn" disabled>음성 다시 듣기 (TTS)</button>
-      </div>
-
-      <div style="margin-top: 15px;">
-        <strong>AI 답변 원본:</strong>
-        <div id="aiAnswer" class="result-box" style="min-height: 80px; background: #fafafa;"></div>
-      </div>
-      
-      <div id="status" class="status"></div>
-
-      <hr style="border:0; border-top:1px solid #edf1f5; margin:30px 0;">
-
-      <h2>2. 수학 기호 변환 결과 창</h2>
-      <div class="shortcut-buttons">
-        <button class="shortcut-btn" onclick="appendShortcut('루트')">√ 루트</button>
-        <button class="shortcut-btn" onclick="appendShortcut('파이')">π 파이</button>
-        <button class="shortcut-btn" onclick="appendShortcut('시그마')">∑ 시그마</button>
-        <button class="shortcut-btn" onclick="appendShortcut('인테그랄')">∫ 인테그랄</button>
-        <button class="shortcut-btn" onclick="appendShortcut('플러스마이너스')">± ±</button>
-      </div>
-      
-      <input id="mathInput" type="text" placeholder="AI 답변이 여기로 자동 복사되며 직접 입력도 가능합니다." />
-      
-      <div style="margin-top: 12px;">
-        <strong>최종 변환 결과 (컴퓨터 표기용):</strong>
-        <div id="mathResult" class="result-box" style="background: #fffde7; border-color: #fbc02d;"></div>
-      </div>
-      
-      <div class="btn-row">
-        <button class="secondary-btn" id="saveDbBtn">위 변환 결과를 Firebase DB에 기록</button>
-      </div>
-
-      <hr style="border:0; border-top:1px solid #edf1f5; margin:30px 0;">
-
-      <h2>3. 나의 저장 내역 (Firebase Realtime DB)</h2>
-      <button class="dark-btn" style="margin-bottom: 12px; height:36px; width:auto; flex:none;" id="refreshBtn">내역 동기화</button>
-      <div id="dataList" class="list"></div>
-    </section>
-  </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getDatabase, ref, push, set, remove, onValue, off } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-    // [설정 1] 본인의 Firebase 웹 앱 SDK 구성 키 정보
+    // 사용자의 Firebase 설정 정보 적용
     const firebaseConfig = {
       apiKey: "AIzaSyBwh9H9tIKEDPE0v4qyq3J-ztgpWje5xDQ",
       authDomain: "project-4779783936135707874.firebaseapp.com",
@@ -132,294 +208,222 @@
       measurementId: "G-2DPM7PVJ7V"
     };
 
-    // [설정 2] 배포 완료한 Google Apps Script 웹앱 URL 주소 (★ 본인 것으로 반드시 교체)
-    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx6SuP3DU__noChqBh0a8ImXIyEOJTRBZoVjj6U4fXfKjkSdZsWiqZv9JYFog_HAvW0/exec';
-
-    // 서비스 인스턴스 초기화
+    // Firebase 초기화
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const database = getDatabase(app);
+    const db = getDatabase(app);
 
-    // 인터페이스 요소 바인딩
-    const authSection = document.getElementById('authSection');
-    const mainSection = document.getElementById('mainSection');
-    const emailInput = document.getElementById('emailInput');
-    const passwordInput = document.getElementById('passwordInput');
-    const loginBtn = document.getElementById('loginBtn');
-    const signupBtn = document.getElementById('signupBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const userEmail = document.getElementById('userEmail');
-    const mathInput = document.getElementById('mathInput');
-    const mathResult = document.getElementById('mathResult');
-    const saveDbBtn = document.getElementById('saveDbBtn');
-    const aiQuestion = document.getElementById('aiQuestion');
-    const askAiBtn = document.getElementById('askAiBtn');
-    const ttsBtn = document.getElementById('ttsBtn');
-    const aiAnswer = document.getElementById('aiAnswer');
-    const statusBox = document.getElementById('status');
-    const dataList = document.getElementById('dataList');
-    const refreshBtn = document.getElementById('refreshBtn');
-
-    let currentUser = null;
-    let currentItemsRef = null;
-    let lastAiAnswerText = ""; 
-
-    function setStatus(msg) { statusBox.textContent = msg; }
-
-    // --- 수학 특수기호 자바스크립트 변환 로직 사전 ---
-    const mathDictionary = {
-      '루트': '√',
-      '파이': 'π',
-      '시그마': '∑',
-      '인테그랄': '∫',
-      '적분': '∫',
-      '플러스마이너스': '±',
-      '알파': 'α',
-      '베타': 'β',
-      '감마': 'γ',
-      '델타': 'δ',
-      '세타': 'θ'
-    };
-
-    function convertMathText() {
-      let text = mathInput.value;
-      for (const [key, value] of Object.entries(mathDictionary)) {
-        text = text.split(key).join(value);
-      }
-      mathResult.textContent = text;
-    }
-
-    mathInput.addEventListener('input', convertMathText);
-
-    window.appendShortcut = function(word) {
-      mathInput.value += word;
-      convertMathText();
-      mathInput.focus();
-    };
-
-    // --- 회원 인증 비즈니스 로직 (.trim() 공백 에러 방지 처리 완료) ---
-    function getAccountInfo() {
-      const email = emailInput.value.trim(); 
-      const password = passwordInput.value.trim();
-      if (!email || !password) { alert('이메일과 비밀번호를 입력해주세요.'); return null; }
-      if (password.length < 6) { alert('비밀번호는 6자리 이상이어야 합니다.'); return null; }
-      return { email, password };
-    }
-
-    signupBtn.addEventListener('click', async () => {
-      const acc = getAccountInfo(); if (!acc) return;
+    // 전역 스크립트에서 호출할 수 있도록 함수 등록
+    window.saveLogToFirebase = function(type, input, output) {
       try {
-        await createUserWithEmailAndPassword(auth, acc.email, acc.password);
-        alert('회원가입이 완료되었습니다!');
-      } catch (err) { alert(getKoreanErrorMessage(err.code)); }
-    });
+        const historyRef = ref(db, 'history');
+        push(historyRef, {
+          type: type,          // 'chat_and_tts' 또는 'pure_tts'
+          input: input,        // 유저가 입력한 값
+          output: output,      // 생성된 답변 결과 (텍스트)
+          timestamp: serverTimestamp() // 서버 시간 저장
+        });
+        console.log("Firebase에 로그가 안전하게 기록되었습니다.");
+      } catch (e) {
+        console.error("Firebase 로그 저장 실패:", e);
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>AI 비서 & TTS 음성 변환기</h1>
+    <div class="subtitle">질문을 던지거나 텍스트를 바로 AI 음성(mp3)으로 변환하고 Firebase에 기록합니다</div>
 
-    loginBtn.addEventListener('click', async () => {
-      const acc = getAccountInfo(); if (!acc) return;
-      try { await signInWithEmailAndPassword(auth, acc.email, acc.password); }
-      catch (err) { alert(getKoreanErrorMessage(err.code)); }
-    });
+    <div class="info">
+      현재 구조: GitHub Pages 화면 → Google Apps Script 서버 → OpenAI API → 데이터 수신<br />
+      <b>[추가 기능]</b>: 생성된 모든 질문과 음성 변환 기록은 실시간으로 <b>Firebase Realtime Database</b>에 누적 저장됩니다.
+    </div>
 
-    logoutBtn.addEventListener('click', async () => { 
-      try { await signOut(auth); } catch(e) { alert('로그아웃 실패'); } 
-    });
+    <div class="label">음성 옵션 설정</div>
+    <div class="option-box">
+      <select id="modelSelect">
+        <option value="tts-1">tts-1 빠른 생성</option>
+        <option value="tts-1-hd">tts-1-hd 고품질</option>
+      </select>
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        currentUser = user;
-        authSection.classList.add('hidden');
-        mainSection.classList.remove('hidden');
-        userEmail.textContent = user.email;
-        emailInput.value = ''; passwordInput.value = '';
-        startRealtimeListener(user.uid);
-      } else {
-        currentUser = null;
-        authSection.classList.remove('hidden');
-        mainSection.classList.add('hidden');
-        stopRealtimeListener();
+      <select id="voiceSelect">
+        <option value="alloy">alloy (공용)</option>
+        <option value="echo">echo (부드러운 남성)</option>
+        <option value="fable">fable (드라마틱)</option>
+        <option value="onyx">onyx (묵직한 남성)</option>
+        <option value="nova">nova (생기있는 여성)</option>
+        <option value="shimmer">shimmer (지적인 여성)</option>
+      </select>
+
+      <input id="speedInput" type="number" min="0.25" max="4.0" step="0.05" value="1.0" placeholder="속도 (1.0)" />
+    </div>
+
+    <div>
+      <div class="label">질문 또는 변환할 텍스트 입력</div>
+      <textarea id="textInput" placeholder="1. 질문을 입력하고 'AI 답변 + 음성 듣기'를 누르거나&#10;2. 문장을 입력하고 '텍스트만 음성 변환'을 눌러보세요."></textarea>
+    </div>
+
+    <div class="button-row">
+      <button class="clear-btn" id="clearBtn">초기화</button>
+      <button class="make-btn" id="makeBtn">텍스트만 음성 변환</button>
+      <button class="ai-btn" id="aiBtn">AI 답변 + 음성 듣기</button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div id="chatBox" class="chat-result-box hidden">
+      <div class="label" style="color: #33691e; margin-top:0;">🤖 AI 답변 결과</div>
+      <div id="chatAnswer" class="chat-answer"></div>
+    </div>
+
+    <div id="resultBox" class="result-box hidden">
+      <div class="label" style="margin-top:0;">🔊 생성된 AI 음성</div>
+      <audio id="audioPlayer" controls></audio>
+      <div class="button-row">
+        <a id="downloadLink" class="download-link" href="#" download="tts-audio.mp3">mp3 다운로드</a>
+      </div>
+    </div>
+
+    <div class="help">
+      • 모든 변환 이력은 설정하신 Firebase Realtime Database의 <b>'history'</b> 노드에 실시간으로 기록됩니다.<br />
+      • 규칙(Rules) 탭에서 <code>".read": true, ".write": true</code> 상태여야 정상적으로 기록이 전송됩니다.
+    </div>
+  </div>
+
+  <script>
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDNMIktE288seW2Mr5YgksYFeAP3SNl8YyQZFa1DuvD0N_8pjRLDmxkZBYyQ4WGPmt/exec';
+
+    const textInput = document.getElementById('textInput');
+    const modelSelect = document.getElementById('modelSelect');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const speedInput = document.getElementById('speedInput');
+    const makeBtn = document.getElementById('makeBtn');
+    const aiBtn = document.getElementById('aiBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const statusBox = document.getElementById('status');
+    const chatBox = document.getElementById('chatBox');
+    const chatAnswer = document.getElementById('chatAnswer');
+    const resultBox = document.getElementById('resultBox');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const downloadLink = document.getElementById('downloadLink');
+
+    makeBtn.addEventListener('click', () => processPipeline(false));
+    aiBtn.addEventListener('click', () => processPipeline(true));
+    clearBtn.addEventListener('click', clearPage);
+
+    textInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' && event.ctrlKey) {
+        processPipeline(false);
       }
     });
 
-    // --- Firebase Realtime Database 제어 ---
-    function startRealtimeListener(uid) {
-      stopRealtimeListener();
-      setStatus('데이터베이스 로딩 중...');
-      currentItemsRef = ref(database, `users/${uid}/items`);
-      onValue(currentItemsRef, (snapshot) => {
-        renderData(snapshot.val());
-        setStatus('시스템 준비 완료.');
-      }, (err) => { setStatus('DB 바인딩 실패. 규칙을 점검하세요.'); });
-    }
+    async function processPipeline(isChat) {
+      const inputText = textInput.value.trim();
+      const model = modelSelect.value;
+      const voice = voiceSelect.value;
+      const speed = Number(speedInput.value || 1.0);
 
-    function stopRealtimeListener() { if (currentItemsRef) { off(currentItemsRef); currentItemsRef = null; } }
-
-    refreshBtn.addEventListener('click', () => { if(currentUser) startRealtimeListener(currentUser.uid); });
-
-    // 💾 Firebase 실시간 저장 핸들러 예외 보완 보충본
-    saveDbBtn.addEventListener('click', async () => {
-      if (!currentUser) {
-        alert('⚠️ 로그인이 필요한 서비스입니다.');
+      if (!inputText) {
+        alert('텍스트를 입력해주세요.');
         return;
       }
-      
-      let finalVal = mathResult.textContent.trim();
-      if (!finalVal) {
-        finalVal = mathInput.value.trim();
-      }
-      
-      if (!finalVal) { 
-        alert('⚠️ 저장할 데이터 결과 값이 없습니다.'); 
-        return; 
-      }
 
       try {
-        setStatus('데이터 저장 요청 중...');
-        const itemsRef = ref(database, `users/${currentUser.uid}/items`);
-        const newItemRef = push(itemsRef);
+        setLoading(true);
+        chatBox.classList.add('hidden');
+        resultBox.classList.add('hidden');
         
-        await set(newItemRef, {
-          content: finalVal,
-          createdAt: new Date().toLocaleString('ko-KR')
-        });
-        
-        setStatus('✅ 데이터베이스 저장 성공!');
-        alert('🎉 Firebase에 데이터가 성공적으로 보관되었습니다!');
-      } catch (error) {
-        console.error("Firebase 저장 에러 디버깅:", error);
-        setStatus('❌ Firebase 저장 실패');
-        alert(`오류 발생: ${error.message}`);
-      }
-    });
+        let ttsTargetText = inputText;
 
-    window.deleteData = async function(id) {
-      if (!currentUser || !confirm('삭제하시겠습니까?')) return;
-      try { await remove(ref(database, `users/${currentUser.uid}/items/${id}`)); } 
-      catch (e) { alert('삭제 처리에 실패했습니다.'); }
-    };
+        // 1단계: Chat 기능 작동 시
+        if (isChat) {
+          statusBox.textContent = '🤖 AI가 답변을 생각하는 중입니다...';
+          const chatResponse = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ type: 'chat', question: inputText })
+          });
 
-    function renderData(data) {
-      dataList.innerHTML = '';
-      if (!data) { dataList.innerHTML = '<div style="text-align:center;color:#888;padding:15px;">저장 내역이 없습니다.</div>'; return; }
-      Object.entries(data).reverse().forEach(([id, item]) => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-          <div class="item-text">
-            <p class="item-content">${escapeHTML(item.content || '')}</p>
-            <div class="item-date">기록일시: ${item.createdAt || '-'}</div>
-          </div>
-          <button class="danger-btn" style="height:32px; padding:0 10px; font-size:12px; flex:none; width:auto;" onclick="deleteData('${id}')">삭제</button>
-        `;
-        dataList.appendChild(div);
-      });
-    }
-
-    // --- 생성형 AI 호출 및 자동 연동 기능 (수학변환 + TTS 자동화) ---
-    askAiBtn.addEventListener('click', async () => {
-      const q = aiQuestion.value.trim();
-      if(!q) { alert('질문을 입력해 주세요.'); return; }
-      if(GAS_WEB_APP_URL.includes('YOUR_GOOGLE')) { alert('코드 내의 GAS_WEB_APP_URL 변수에 주소를 먼저 맵핑해 주세요.'); return; }
-
-      try {
-        askAiBtn.disabled = true;
-        ttsBtn.disabled = true;
-        saveDbBtn.disabled = true; // 대기 시간 동안 버튼 잠금
-        aiAnswer.textContent = "AI가 답변을 생성하고 있습니다. 기호 변환과 TTS 음성이 차례로 실행됩니다...";
-        setStatus('🤖 OpenAI API 통신 중...');
-
-        const res = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          body: JSON.stringify({ type: "chat", question: q })
-        });
-        const data = await res.json();
-
-        if (data.answer) {
-          const reply = data.answer;
-          lastAiAnswerText = reply;
-          aiAnswer.textContent = reply;
-          setStatus('답변 수신 성공! 즉시 수학 변환 및 음성 합성을 시도합니다.');
-
-          // [자동화 1] 받아온 AI 답변을 수학 입력창에 주입
-          mathInput.value = reply;
+          const chatData = await chatResponse.json();
+          if (chatData.error) throw new Error('Chat 오류: ' + chatData.error);
           
-          // [자동화 2] 수식 사전 치환 구동
-          convertMathText(); 
-
-          // [자동화 3] TTS 자동 시작
-          playAutomaticTTS(reply);
-
-        } else if (data.error) {
-          aiAnswer.textContent = `오류 발생:\n${data.error}`;
-          setStatus('서버 에러 피드백 수신');
-          askAiBtn.disabled = false;
-          saveDbBtn.disabled = false;
-        }
-      } catch (err) {
-        console.error(err);
-        aiAnswer.textContent = "Apps Script 서버와 연결할 수 없습니다. 배포 설정을 확인해 주세요.";
-        setStatus('서버 통신 예외 발생');
-        askAiBtn.disabled = false;
-        saveDbBtn.disabled = false;
-      }
-    });
-
-    ttsBtn.addEventListener('click', () => {
-      if(lastAiAnswerText) playAutomaticTTS(lastAiAnswerText);
-    });
-
-    // 🔊 TTS 송출 제어 프로세스 및 잠금 복구 통합
-    async function playAutomaticTTS(textToSpeak) {
-      try {
-        ttsBtn.disabled = true;
-        saveDbBtn.disabled = true; 
-        setStatus('📢 OpenAI TTS 엔진으로 음성 합성 중...');
-
-        const cleanText = textToSpeak.substring(0, 250);
-
-        const res = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          body: JSON.stringify({ type: "tts", text: cleanText })
-        });
-        const data = await res.json();
-
-        if (data.audioBase64) {
-          setStatus('🔊 스피커로 AI 음성 답변 재생 중...');
-          const audioBytes = Uint8Array.from(atob(data.audioBase64), c => c.charCodeAt(0));
-          const blob = new Blob([audioBytes], { type: 'audio/mp3' });
-          const audioUrl = URL.createObjectURL(blob);
-          const audio = new Audio(audioUrl);
+          chatAnswer.textContent = chatData.answer;
+          chatBox.classList.remove('hidden');
           
-          audio.play();
-          
-          audio.onended = () => {
-            setStatus('✅ 전체 프로세스 완료! 이제 결과를 저장할 수 있습니다.');
-            // 전체 인터랙션 정상 제어로 복구
-            ttsBtn.disabled = false;
-            askAiBtn.disabled = false;
-            saveDbBtn.disabled = false; 
-          };
+          ttsTargetText = chatData.answer;
+
+          // [Firebase 기록] Chat 결과 저장
+          if(typeof window.saveLogToFirebase === 'function') {
+            window.saveLogToFirebase('chat_and_tts', inputText, chatData.answer);
+          }
         } else {
-          setStatus('TTS 바이너리 변환 실패');
-          ttsBtn.disabled = false;
-          askAiBtn.disabled = false;
-          saveDbBtn.disabled = false;
+          // [Firebase 기록] 단순 TTS 결과 저장
+          if(typeof window.saveLogToFirebase === 'function') {
+            window.saveLogToFirebase('pure_tts', inputText, '(순수 텍스트 음성 변환)');
+          }
         }
-      } catch (err) {
-        console.error(err);
-        setStatus('TTS 데이터 통신 장애');
-        ttsBtn.disabled = false;
-        askAiBtn.disabled = false;
-        saveDbBtn.disabled = false;
+
+        // 2단계: TTS 변환 작업
+        statusBox.textContent = '🔊 답변을 AI 음성으로 변환하고 있습니다...';
+        const ttsResponse = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            type: 'tts',
+            text: ttsTargetText,
+            model: model,
+            voice: voice,
+            speed: speed
+          })
+        });
+
+        const ttsData = await ttsResponse.json();
+        if (ttsData.error) throw new Error('TTS 오류: ' + ttsData.error);
+
+        const audioUrl = base64ToAudioUrl(ttsData.audioBase64, 'audio/mpeg');
+        audioPlayer.src = audioUrl;
+        downloadLink.href = audioUrl;
+        downloadLink.download = makeFileName();
+        
+        resultBox.classList.remove('hidden');
+        statusBox.textContent = '✅ 완료되었습니다!';
+
+      } catch (error) {
+        console.error(error);
+        statusBox.textContent = '❌ 요청 실패';
+        alert('오류가 발생했습니다.\n\n' + error.message);
+      } finally {
+        setLoading(false);
       }
     }
 
-    function escapeHTML(t) { return String(t).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-    function getKoreanErrorMessage(c) {
-      if (c === 'auth/invalid-email') return '올바른 이메일 형식이 아닙니다. 앞뒤 공백이나 오타를 확인하세요.';
-      if (c === 'auth/email-already-in-use') return '이미 가입된 이메일입니다.';
-      if (c === 'auth/weak-password') return '비밀번호는 6자리 이상이어야 합니다.';
-      if (c === 'auth/invalid-credential') return '이메일 주소 또는 비밀번호가 틀렸습니다.';
-      return `에러 코드: ${c}`;
+    function base64ToAudioUrl(base64, mimeType) {
+      const byteCharacters = atob(base64);
+      const byteArrays = [];
+      for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+        const slice = byteCharacters.slice(offset, offset + 512);
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) { byteNumbers[i] = slice.charCodeAt(i); }
+        byteArrays.push(new Uint8Array(byteNumbers));
+      }
+      return URL.createObjectURL(new Blob(byteArrays, { type: mimeType }));
+    }
+
+    function makeFileName() {
+      const now = new Date();
+      return `ai-voice-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.mp3`;
+    }
+
+    function setLoading(isLoading) {
+      makeBtn.disabled = isLoading;
+      aiBtn.disabled = isLoading;
+    }
+
+    function clearPage() {
+      textInput.value = '';
+      statusBox.textContent = '';
+      chatAnswer.textContent = '';
+      audioPlayer.removeAttribute('src');
+      chatBox.classList.add('hidden');
+      resultBox.classList.add('hidden');
     }
   </script>
 </body>
