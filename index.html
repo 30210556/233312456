@@ -42,7 +42,7 @@
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
     }
 
-    /* 🔑 로그인 섹션 스타일 */
+    /* 🔑 인증(로그인/회원가입) 섹션 스타일 */
     .auth-section {
       max-width: 400px;
       margin: 60px auto;
@@ -72,6 +72,18 @@
       font-size: 15px;
       font-weight: bold;
       cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .register-btn {
+      background: #009688;
+    }
+    .toggle-auth-link {
+      font-size: 13px;
+      color: #00796b;
+      text-decoration: underline;
+      cursor: pointer;
+      display: inline-block;
+      margin-top: 10px;
     }
 
     /* 👤 상단 유저 바 및 로그아웃 버튼 */
@@ -243,8 +255,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
     import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-    // 이메일 패스워드 인증 및 상태 변화 감지(onAuthStateChanged) 불러오기
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+    // 회원가입용 createUserWithEmailAndPassword 기능 추가 로드
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBwh9H9tIKEDPE0v4qyq3J-ztgpWje5xDQ",
@@ -262,26 +274,26 @@
     const auth = getAuth(app);
     const historyRef = ref(db, 'math_history');
 
-    // 🔄 실시간 로그인 상태 감지 (핵심 로직)
+    // 🔄 실시간 로그인 상태 감지
     onAuthStateChanged(auth, (user) => {
-      const loginBox = document.getElementById('loginBox');
+      const authBox = document.getElementById('authBox');
       const appContainer = document.getElementById('appContainer');
       const userEmailSpan = document.getElementById('userEmail');
 
       if (user) {
-        // 로그인된 상태 -> 본문 보여주기
-        loginBox.classList.add('hidden');
+        // 로그인 상태
+        authBox.classList.add('hidden');
         appContainer.classList.remove('hidden');
         userEmailSpan.textContent = user.email;
-        loadHistory(); // 역사 기록 불러오기
+        loadHistory();
       } else {
-        // 로그아웃된 상태 -> 로그인 박스 보여주기
-        loginBox.classList.remove('hidden');
+        // 로그아웃 상태
+        authBox.classList.remove('hidden');
         appContainer.classList.add('hidden');
       }
     });
 
-    // 🔑 로그인 버튼 클릭 이벤트
+    // 🔑 1. 로그인 처리 함수
     window.handleLogin = function() {
       const email = document.getElementById('emailInput').value.trim();
       const password = document.getElementById('passwordInput').value.trim();
@@ -293,15 +305,57 @@
           console.log("로그인 성공:", userCredential.user.email);
         })
         .catch((error) => {
-          alert("로그인 실패: " + error.message);
+          alert("로그인 실패: " + getFriendlyErrorMessage(error.code));
         });
     };
 
-    // 🚪 로그아웃 버튼 클릭 이벤트
+    // 📝 2. 회원가입 처리 함수
+    window.handleRegister = function() {
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value.trim();
+
+      if(!email || !password) { alert('가입할 이메일과 비밀번호를 입력해주세요.'); return; }
+      if(password.length < 6) { alert('비밀번호는 최소 6자리 이상이어야 합니다.'); return; }
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          alert("회원가입이 성공적으로 완료되었습니다! 환영합니다.");
+          console.log("회원가입 성공:", userCredential.user.email);
+        })
+        .catch((error) => {
+          alert("회원가입 실패: " + getFriendlyErrorMessage(error.code));
+        });
+    };
+
+    // 🔄 3. 로그인 <-> 회원가입 UI 전환 토글 함수
+    window.toggleAuthMode = function() {
+      const title = document.getElementById('authTitle');
+      const desc = document.getElementById('authDesc');
+      const loginBtn = document.getElementById('loginSubmitBtn');
+      const registerBtn = document.getElementById('registerSubmitBtn');
+      const toggleLink = document.getElementById('toggleLink');
+
+      if (loginBtn.classList.contains('hidden')) {
+        // 회원가입 모드 -> 로그인 모드로 변경
+        title.textContent = "🔐 수학 변환기 로그인";
+        desc.textContent = "서비스 이용을 위해 Firebase 계정으로 로그인해 주세요.";
+        loginBtn.classList.remove('hidden');
+        registerBtn.classList.add('hidden');
+        toggleLink.textContent = "아직 계정이 없으신가요? 회원가입하기";
+      } else {
+        // 로그인 모드 -> 회원가입 모드로 변경
+        title.textContent = "📝 수학 변환기 회원가입";
+        desc.textContent = "새로운 계정을 생성하여 수학 변환 기록을 보관하세요.";
+        loginBtn.classList.add('hidden');
+        registerBtn.classList.remove('hidden');
+        toggleLink.textContent = "이미 계정이 있으신가요? 로그인하기";
+      }
+    };
+
+    // 🚪 4. 로그아웃 처리 함수
     window.handleLogout = function() {
       if (confirm("로그아웃 하시겠습니까?")) {
         signOut(auth).then(() => {
-          // 입력 필드 초기화
           document.getElementById('emailInput').value = '';
           document.getElementById('passwordInput').value = '';
           console.log("로그아웃 성공");
@@ -310,6 +364,18 @@
         });
       }
     };
+
+    // 🚨 Firebase 에러 메시지 한글 변환기
+    function getFriendlyErrorMessage(code) {
+      switch (code) {
+        case 'auth/email-already-in-use': return '이미 가입된 이메일 주소입니다.';
+        case 'auth/invalid-email': return '올바른 이메일 형식이 아닙니다.';
+        case 'auth/weak-password': return '비밀번호가 너무 취약합니다. (6자 이상)';
+        case 'auth/user-not-found': return '존재하지 않는 회원 계정입니다.';
+        case 'auth/wrong-password': return '비밀번호가 일치하지 않습니다.';
+        default: return '네트워크 오동작 또는 잘못된 입력값입니다.';
+      }
+    }
 
     window.saveLogToFirebase = function(type, input, output) {
       push(historyRef, { type: type, input: input, output: output, timestamp: serverTimestamp() });
@@ -345,12 +411,18 @@
 </head>
 <body>
 
-  <div id="loginBox" class="auth-section">
-    <h2 style="color: #004d40; margin-top: 0;">🔐 수학 변환기 로그인</h2>
-    <p style="font-size: 13px; color: #666; margin-bottom: 20px;">서비스 이용을 위해 Firebase 계정으로 로그인해 주세요.</p>
+  <div id="authBox" class="auth-section">
+    <h2 id="authTitle" style="color: #004d40; margin-top: 0;">🔐 수학 변환기 로그인</h2>
+    <p id="authDesc" style="font-size: 13px; color: #666; margin-bottom: 20px;">서비스 이용을 위해 Firebase 계정으로 로그인해 주세요.</p>
+    
     <input id="emailInput" class="auth-input" type="email" placeholder="이메일 주소 입력" />
-    <input id="passwordInput" class="auth-input" type="password" placeholder="비밀번호 입력" />
-    <button class="auth-btn" onclick="handleLogin()">로그인</button>
+    <input id="passwordInput" class="auth-input" type="password" placeholder="비밀번호 입력 (6자 이상)" />
+    
+    <button id="loginSubmitBtn" class="auth-btn" onclick="handleLogin()">로그인</button>
+    <button id="registerSubmitBtn" class="auth-btn register-btn hidden" onclick="handleRegister()">회원가입 완료하기</button>
+    
+    <br />
+    <span id="toggleLink" class="toggle-auth-link" onclick="toggleAuthMode()">아직 계정이 없으신가요? 회원가입하기</span>
   </div>
 
   <div id="appContainer" class="container hidden">
