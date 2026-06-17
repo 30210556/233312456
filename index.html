@@ -151,7 +151,6 @@
       font-weight: bold;
     }
 
-    /* 수식 렌더링 박스 */
     .math-preview-box {
       margin-top: 15px;
       padding: 16px;
@@ -182,7 +181,6 @@
     audio { width: 100%; margin-top: 10px; }
     .hidden { display: none; }
 
-    /* 📜 Firebase 히스토리 */
     .history-section {
       margin-top: 30px;
       border-top: 2px dashed #e0e0e0;
@@ -199,6 +197,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
     import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    // Auth와 signOut 기능을 새롭게 불러옵니다.
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBwh9H9tIKEDPE0v4qyq3J-ztgpWje5xDQ",
@@ -215,11 +215,18 @@
     const db = getDatabase(app);
     const historyRef = ref(db, 'math_history');
 
+    // ⭐ [핵심 해결책] 웹 앱이 켜질 때마다 브라우저에 남아있던 자동 로그인 상태를 강제로 지웁니다.
+    const auth = getAuth(app);
+    signOut(auth).then(() => {
+      console.log("이전 로그인 세션 청소 완료! 이제 무조건 첫 로그인 창이 활성화됩니다.");
+    }).catch((error) => {
+      console.error("로그아웃 세션 초기화 오류:", error);
+    });
+
     window.saveLogToFirebase = function(type, input, output) {
       push(historyRef, { type: type, input: input, output: output, timestamp: serverTimestamp() });
     };
 
-    // 실시간 DB 데이터 화면 표기 + 수식 재렌더링
     onValue(historyRef, (snapshot) => {
       const historyListEl = document.getElementById('historyList');
       historyListEl.innerHTML = '';
@@ -242,7 +249,6 @@
         `;
         historyListEl.appendChild(itemEl);
       });
-      // 히스토리 내의 수학 기호들 실시간 업데이트 렌더링
       if (window.MathJax && MathJax.typesetPromise) { MathJax.typesetPromise(); }
     });
   </script>
@@ -309,7 +315,8 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw15E_EKZ0uUcKcDeWWho0KVTUQmWeVaih6ZIcqM_D3xZjMszMM_ER1m8DTv6NMoeMj/exec';
+    // ⚠️ [기억나시죠?] 새로 배포한 가장 최신의 Google Apps Script URL 주소를 여기에 넣어주세요!
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBQOnFbfdadlOorfmJ-5cCtgEI6RQwMaYzJFUdIApSAInDe1ufX6YkVDGeLIpRfRp0/exec';
 
     const textInput = document.getElementById('textInput');
     const mathPreview = document.getElementById('mathPreview');
@@ -336,7 +343,7 @@
         if (window.MathJax && MathJax.typesetPromise) {
           MathJax.typesetPromise([mathPreview]);
         }
-      }, 300); // 0.3초 대기 후 변환 (성능 최적화)
+      }, 300);
     });
 
     makeBtn.addEventListener('click', () => processPipeline(false));
@@ -360,7 +367,6 @@
         let ttsTargetText = inputText;
 
         if (isChat) {
-          // AI 호출 프로프트를 수학 전용 어시스턴트 느낌으로 연동 유도
           const chatResponse = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ type: 'chat', question: inputText + " (수학 기호는 $ 기호로 감싸서 LaTeX 형식으로 친절하게 답변해주세요.)" })
@@ -371,7 +377,6 @@
           chatAnswer.textContent = chatData.answer;
           chatBox.classList.remove('hidden');
           
-          // AI 답변 결과 수식으로 보기 좋게 전환
           if (window.MathJax && MathJax.typesetPromise) { MathJax.typesetPromise([chatAnswer]); }
           
           ttsTargetText = chatData.answer;
@@ -385,7 +390,6 @@
           }
         }
 
-        // 음성 API 요청 (OpenAI는 수식 부호를 말로 풀어서 자연스럽게 읽어줍니다)
         statusBox.textContent = '🔊 생성된 수식 내용을 오디오 파일로 굽는 중...';
         const ttsResponse = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
