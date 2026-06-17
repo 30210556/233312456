@@ -42,6 +42,52 @@
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
     }
 
+    /* 🔑 로그인 섹션 스타일 */
+    .auth-section {
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 30px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    .auth-input {
+      width: 100%;
+      height: 46px;
+      margin-bottom: 12px;
+      padding: 0 12px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    .auth-btn {
+      width: 100%;
+      height: 46px;
+      background: #00796b;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* 👤 상단 유저 바 및 로그아웃 버튼 */
+    .user-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f4fbfb;
+      padding: 12px 20px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+      border: 1px solid #e0f2f1;
+    }
+    .user-info { font-size: 14px; color: #004d40; font-weight: bold; }
+    .logout-btn { background: #ff5252 !important; color: white !important; height: 36px !important; font-size: 13px !important; padding: 0 14px !important; }
+
     h1 {
       margin: 0 0 8px;
       text-align: center;
@@ -179,7 +225,7 @@
     }
 
     audio { width: 100%; margin-top: 10px; }
-    .hidden { display: none; }
+    .hidden { display: none !important; }
 
     .history-section {
       margin-top: 30px;
@@ -197,8 +243,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
     import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-    // Auth와 signOut 기능을 새롭게 불러옵니다.
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+    // 이메일 패스워드 인증 및 상태 변화 감지(onAuthStateChanged) 불러오기
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBwh9H9tIKEDPE0v4qyq3J-ztgpWje5xDQ",
@@ -213,48 +259,107 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const auth = getAuth(app);
     const historyRef = ref(db, 'math_history');
 
-    // ⭐ [핵심 해결책] 웹 앱이 켜질 때마다 브라우저에 남아있던 자동 로그인 상태를 강제로 지웁니다.
-    const auth = getAuth(app);
-    signOut(auth).then(() => {
-      console.log("이전 로그인 세션 청소 완료! 이제 무조건 첫 로그인 창이 활성화됩니다.");
-    }).catch((error) => {
-      console.error("로그아웃 세션 초기화 오류:", error);
+    // 🔄 실시간 로그인 상태 감지 (핵심 로직)
+    onAuthStateChanged(auth, (user) => {
+      const loginBox = document.getElementById('loginBox');
+      const appContainer = document.getElementById('appContainer');
+      const userEmailSpan = document.getElementById('userEmail');
+
+      if (user) {
+        // 로그인된 상태 -> 본문 보여주기
+        loginBox.classList.add('hidden');
+        appContainer.classList.remove('hidden');
+        userEmailSpan.textContent = user.email;
+        loadHistory(); // 역사 기록 불러오기
+      } else {
+        // 로그아웃된 상태 -> 로그인 박스 보여주기
+        loginBox.classList.remove('hidden');
+        appContainer.classList.add('hidden');
+      }
     });
+
+    // 🔑 로그인 버튼 클릭 이벤트
+    window.handleLogin = function() {
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value.trim();
+
+      if(!email || !password) { alert('이메일과 비밀번호를 입력해주세요.'); return; }
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          console.log("로그인 성공:", userCredential.user.email);
+        })
+        .catch((error) => {
+          alert("로그인 실패: " + error.message);
+        });
+    };
+
+    // 🚪 로그아웃 버튼 클릭 이벤트
+    window.handleLogout = function() {
+      if (confirm("로그아웃 하시겠습니까?")) {
+        signOut(auth).then(() => {
+          // 입력 필드 초기화
+          document.getElementById('emailInput').value = '';
+          document.getElementById('passwordInput').value = '';
+          console.log("로그아웃 성공");
+        }).catch((error) => {
+          alert("로그아웃 오류: " + error.message);
+        });
+      }
+    };
 
     window.saveLogToFirebase = function(type, input, output) {
       push(historyRef, { type: type, input: input, output: output, timestamp: serverTimestamp() });
     };
 
-    onValue(historyRef, (snapshot) => {
-      const historyListEl = document.getElementById('historyList');
-      historyListEl.innerHTML = '';
-      const data = snapshot.val();
-      if (!data) {
-        historyListEl.innerHTML = '<div style="color:#999; text-align:center; padding: 10px;">기록이 없습니다.</div>';
-        return;
-      }
-      const keys = Object.keys(data).reverse();
-      keys.forEach(key => {
-        const item = data[key];
-        const itemEl = document.createElement('div');
-        itemEl.className = 'history-item';
-        const isChat = item.type === 'math_chat';
-        const badgeHtml = isChat ? '<span class="badge chat">수학 질의</span>' : '<span class="badge tts">수식 변환</span>';
-        
-        itemEl.innerHTML = `
-          <div>${badgeHtml} <b>입력:</b> ${item.input}</div>
-          ${isChat ? `<div style="margin-top: 5px; color: #444;">└ <b>AI 답변:</b> ${item.output}</div>` : ''}
-        `;
-        historyListEl.appendChild(itemEl);
+    function loadHistory() {
+      onValue(historyRef, (snapshot) => {
+        const historyListEl = document.getElementById('historyList');
+        historyListEl.innerHTML = '';
+        const data = snapshot.val();
+        if (!data) {
+          historyListEl.innerHTML = '<div style="color:#999; text-align:center; padding: 10px;">기록이 없습니다.</div>';
+          return;
+        }
+        const keys = Object.keys(data).reverse();
+        keys.forEach(key => {
+          const item = data[key];
+          const itemEl = document.createElement('div');
+          itemEl.className = 'history-item';
+          const isChat = item.type === 'math_chat';
+          const badgeHtml = isChat ? '<span class="badge chat">수학 질의</span>' : '<span class="badge tts">수식 변환</span>';
+          
+          itemEl.innerHTML = `
+            <div>${badgeHtml} <b>입력:</b> ${item.input}</div>
+            ${isChat ? `<div style="margin-top: 5px; color: #444;">└ <b>AI 답변:</b> ${item.output}</div>` : ''}
+          `;
+          historyListEl.appendChild(itemEl);
+        });
+        if (window.MathJax && MathJax.typesetPromise) { MathJax.typesetPromise(); }
       });
-      if (window.MathJax && MathJax.typesetPromise) { MathJax.typesetPromise(); }
-    });
+    }
   </script>
 </head>
 <body>
-  <div class="container">
+
+  <div id="loginBox" class="auth-section">
+    <h2 style="color: #004d40; margin-top: 0;">🔐 수학 변환기 로그인</h2>
+    <p style="font-size: 13px; color: #666; margin-bottom: 20px;">서비스 이용을 위해 Firebase 계정으로 로그인해 주세요.</p>
+    <input id="emailInput" class="auth-input" type="email" placeholder="이메일 주소 입력" />
+    <input id="passwordInput" class="auth-input" type="password" placeholder="비밀번호 입력" />
+    <button class="auth-btn" onclick="handleLogin()">로그인</button>
+  </div>
+
+  <div id="appContainer" class="container hidden">
+    
+    <div class="user-bar">
+      <div class="user-info">👤 접속 계정: <span id="userEmail" style="color: #00796b;">-</span></div>
+      <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
+    </div>
+
     <h1>수학 기호 입력 및 AI 변환기</h1>
     <div class="subtitle">LaTeX 문법을 활용한 수학 기호 시각화 및 오디오 변환 시스템</div>
 
@@ -315,7 +420,6 @@
   </div>
 
   <script>
-    // ⚠️ [기억나시죠?] 새로 배포한 가장 최신의 Google Apps Script URL 주소를 여기에 넣어주세요!
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBQOnFbfdadlOorfmJ-5cCtgEI6RQwMaYzJFUdIApSAInDe1ufX6YkVDGeLIpRfRp0/exec';
 
     const textInput = document.getElementById('textInput');
@@ -333,7 +437,6 @@
     const audioPlayer = document.getElementById('audioPlayer');
     const downloadLink = document.getElementById('downloadLink');
 
-    // ⌨️ 키보드 입력 시 실시간으로 MathJax 기호 변환 작동
     let debounceTimer;
     textInput.addEventListener('input', () => {
       clearTimeout(debounceTimer);
